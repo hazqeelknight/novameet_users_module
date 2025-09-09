@@ -23,7 +23,7 @@ import { validatePhoneNumber, validateTimezone, getAvailableTimezones } from '..
 
 interface ProfileFormProps {
   profile: Profile;
-  onSubmit: (data: Partial<Profile>) => void;
+  onSubmit: (data: Partial<Profile> | FormData) => void;
   isLoading?: boolean;
 }
 
@@ -32,6 +32,9 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
   onSubmit,
   isLoading = false,
 }) => {
+  const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
+  
   const timezones = getAvailableTimezones();
   
   const {
@@ -43,11 +46,56 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
     defaultValues: profile,
   });
 
-  const profilePicture = watch('profile_picture');
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      // Create preview URL
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+    }
+  };
+
+  // Clean up preview URL when component unmounts
+  React.useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   const handleFormSubmit = (data: Partial<Profile>) => {
-    onSubmit(data);
+    if (selectedFile) {
+      // Create FormData for file upload
+      const formData = new FormData();
+      
+      // Append all form fields
+      Object.entries(data).forEach(([key, value]) => {
+        if (value !== null && value !== undefined) {
+          if (typeof value === 'boolean') {
+            formData.append(key, value.toString());
+          } else if (typeof value === 'number') {
+            formData.append(key, value.toString());
+          } else {
+            formData.append(key, value as string);
+          }
+        }
+      });
+      
+      // Append the file
+      formData.append('profile_picture', selectedFile);
+      
+      onSubmit(formData);
+    } else {
+      // Remove profile_picture from data to avoid sending the URL string
+      const { profile_picture, ...updateData } = data;
+      onSubmit(updateData);
+    }
   };
+
+  // Get current profile picture URL (either preview or existing)
+  const currentProfilePicture = previewUrl || profile.profile_picture;
 
   return (
     <Box component="form" onSubmit={handleSubmit(handleFormSubmit)} noValidate>
@@ -61,7 +109,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                 <Avatar
-                  src={profilePicture || undefined}
+                  src={currentProfilePicture || undefined}
                   sx={{ width: 80, height: 80 }}
                 >
                   {profile.display_name?.charAt(0) || profile.user?.first_name?.charAt(0)}
@@ -76,19 +124,18 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                       hidden
                       accept="image/*"
                       type="file"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          // Handle file upload logic here
-                          console.log('File selected:', file);
-                        }
-                      }}
+                      onChange={handleFileChange}
                     />
                     <PhotoCamera />
                   </IconButton>
                   <Typography variant="body2" color="text.secondary">
-                    Upload a new profile picture
+                    {selectedFile ? 'New image selected' : 'Upload a new profile picture'}
                   </Typography>
+                  {selectedFile && (
+                    <Typography variant="caption" color="primary.main" display="block">
+                      {selectedFile.name}
+                    </Typography>
+                  )}
                 </Box>
               </Box>
             </Box>
