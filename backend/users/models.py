@@ -557,7 +557,7 @@ class AuditLog(models.Model):
     # Context information
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     user_agent = models.TextField(blank=True)
-    session_key = models.CharField(max_length=40, blank=True)
+    session_key = models.CharField(max_length=40, null=True, blank=True)
     
     # Additional data
     metadata = models.JSONField(default=dict, blank=True, help_text="Additional context data")
