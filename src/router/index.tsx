@@ -116,6 +116,16 @@ export const router = createBrowserRouter([
     element: <Navigate to="/" replace />,
   },
   
+  // Settings redirect to user profile
+  {
+    path: '/settings',
+    element: (
+      <ProtectedRoute>
+        <Navigate to="/users/profile" replace />
+      </ProtectedRoute>
+    ),
+  },
+  
   // Module routes
   {
     path: '/users/*',
