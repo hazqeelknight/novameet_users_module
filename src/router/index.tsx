@@ -19,6 +19,14 @@ const notificationsRoutes = React.lazy(() => import('@/notifications/routes'));
 const contactsRoutes = React.lazy(() => import('@/contacts/routes'));
 const workflowsRoutes = React.lazy(() => import('@/workflows/routes'));
 
+// Users module public routes
+const VerifyEmail = React.lazy(() => import('@/users/pages/VerifyEmail'));
+const RequestPasswordReset = React.lazy(() => import('@/users/pages/RequestPasswordReset'));
+const ConfirmPasswordReset = React.lazy(() => import('@/users/pages/ConfirmPasswordReset'));
+const ChangePassword = React.lazy(() => import('@/users/pages/ChangePassword'));
+const RespondToInvitation = React.lazy(() => import('@/users/pages/RespondToInvitation'));
+const PublicProfile = React.lazy(() => import('@/users/pages/PublicProfile'));
+
 export const router = createBrowserRouter([
   // Public routes
   {
@@ -35,6 +43,58 @@ export const router = createBrowserRouter([
       <PublicRoute>
         <Register />
       </PublicRoute>
+    ),
+  },
+  
+  // Public authentication routes
+  {
+    path: '/verify-email',
+    element: (
+      <PublicRoute>
+        <VerifyEmail />
+      </PublicRoute>
+    ),
+  },
+  {
+    path: '/request-password-reset',
+    element: (
+      <PublicRoute>
+        <RequestPasswordReset />
+      </PublicRoute>
+    ),
+  },
+  {
+    path: '/reset-password',
+    element: (
+      <PublicRoute>
+        <ConfirmPasswordReset />
+      </PublicRoute>
+    ),
+  },
+  {
+    path: '/change-password',
+    element: (
+      <React.Suspense fallback={<div>Loading...</div>}>
+        <ChangePassword />
+      </React.Suspense>
+    ),
+  },
+  {
+    path: '/invitation',
+    element: (
+      <PublicRoute>
+        <RespondToInvitation />
+      </PublicRoute>
+    ),
+  },
+  
+  // Public profile route
+  {
+    path: '/:organizerSlug',
+    element: (
+      <React.Suspense fallback={<div>Loading...</div>}>
+        <PublicProfile />
+      </React.Suspense>
     ),
   },
   
