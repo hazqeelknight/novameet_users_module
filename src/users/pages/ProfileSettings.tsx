@@ -10,7 +10,7 @@ const ProfileSettings: React.FC = () => {
   const { data: profile, isLoading, error } = useProfile();
   const updateProfileMutation = useUpdateProfile();
 
-  const handleProfileUpdate = (updates: Partial<Profile>) => {
+  const handleProfileUpdate = (updates: Partial<Profile> | FormData) => {
     updateProfileMutation.mutate(updates);
   };
 

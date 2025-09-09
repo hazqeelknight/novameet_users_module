@@ -20,7 +20,7 @@ export const useUpdateProfile = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (updates: Partial<Profile>) => {
+    mutationFn: async (updates: Partial<Profile> | FormData) => {
       const response = await api.patch('/users/profile/', updates);
       return response.data;
     },

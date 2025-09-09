@@ -23,7 +23,7 @@ import { validatePhoneNumber, validateTimezone, getAvailableTimezones } from '..
 
 interface ProfileFormProps {
   profile: Profile;
-  onSubmit: (data: Partial<Profile>) => void;
+  onSubmit: (data: Partial<Profile> | FormData) => void;
   isLoading?: boolean;
 }
 
@@ -32,6 +32,9 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
   onSubmit,
   isLoading = false,
 }) => {
+  const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
+  
   const timezones = getAvailableTimezones();
   
   const {
@@ -46,7 +49,26 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
   const profilePicture = watch('profile_picture');
 
   const handleFormSubmit = (data: Partial<Profile>) => {
-    onSubmit(data);
+    if (selectedFile) {
+      // Create FormData for file upload
+      const formData = new FormData();
+      
+      // Append all form fields
+      Object.entries(data).forEach(([key, value]) => {
+        if (value !== null && value !== undefined) {
+          formData.append(key, value.toString());
+        }
+      });
+      
+      // Append the selected file
+      formData.append('profile_picture', selectedFile);
+      
+      onSubmit(formData);
+    } else {
+      // Create plain object excluding profile_picture to retain existing one
+      const { profile_picture, ...updatedData } = data;
+      onSubmit(updatedData);
+    }
   };
 
   return (
@@ -61,7 +83,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                 <Avatar
-                  src={profilePicture || undefined}
+                  src={previewUrl || profilePicture || undefined}
                   sx={{ width: 80, height: 80 }}
                 >
                   {profile.display_name?.charAt(0) || profile.user?.first_name?.charAt(0)}
@@ -79,8 +101,9 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
-                          // Handle file upload logic here
-                          console.log('File selected:', file);
+                          setSelectedFile(file);
+                          const url = URL.createObjectURL(file);
+                          setPreviewUrl(url);
                         }
                       }}
                     />
